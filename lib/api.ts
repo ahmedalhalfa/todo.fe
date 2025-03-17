@@ -43,8 +43,8 @@ export interface UpdateTodoDto {
 
 // Auth types
 export interface AuthTokens {
-  accessToken: string
-  refreshToken: string
+  access_token: string
+  refresh_token: string
 }
 
 export interface LoginDto {

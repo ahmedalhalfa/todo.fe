@@ -30,8 +30,8 @@ interface RegisterData {
 }
 
 interface AuthTokens {
-  accessToken: string
-  refreshToken: string
+  access_token: string
+  refresh_token: string
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -95,11 +95,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const saveAuthData = (userData: User, tokens: AuthTokens) => {
     localStorage.setItem("user", JSON.stringify(userData))
-    localStorage.setItem("accessToken", tokens.accessToken)
-    localStorage.setItem("refreshToken", tokens.refreshToken)
+    localStorage.setItem("accessToken", tokens.access_token)
+    localStorage.setItem("refreshToken", tokens.refresh_token)
 
     // Set the authorization header for all future requests
-    api.defaults.headers.common["Authorization"] = `Bearer ${tokens.accessToken}`
+    api.defaults.headers.common["Authorization"] = `Bearer ${tokens.access_token}`
 
     setUser(userData)
   }
@@ -119,12 +119,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await api.post("/auth/refresh", { refreshToken })
 
-      if (response.data.accessToken) {
-        localStorage.setItem("accessToken", response.data.accessToken)
-        localStorage.setItem("refreshToken", response.data.refreshToken)
+      if (response.data.access_token) {
+        localStorage.setItem("accessToken", response.data.access_token)
+        localStorage.setItem("refreshToken", response.data.refresh_token)
 
         // Update the authorization header
-        api.defaults.headers.common["Authorization"] = `Bearer ${response.data.accessToken}`
+        api.defaults.headers.common["Authorization"] = `Bearer ${response.data.access_token}`
 
         return true
       }
@@ -144,7 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await api.post("/auth/register", userData)
       console.log("Registration response:", response.data);
 
-      if (response.data.accessToken) {
+      if (response.data.access_token) {
         const user: User = {
           email: userData.email,
           firstName: userData.firstName,
@@ -152,8 +152,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         saveAuthData(user, {
-          accessToken: response.data.accessToken,
-          refreshToken: response.data.refreshToken,
+          access_token: response.data.access_token,
+          refresh_token: response.data.refresh_token,
         })
 
         toast({
@@ -164,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("Attempting to navigate to dashboard...");
         router.push("/dashboard")
       } else {
-        console.error("Missing accessToken in registration response:", response.data);
+        console.error("Missing access_token in registration response:", response.data);
       }
     } catch (error: any) {
       console.error("Registration failed:", error);
@@ -187,9 +187,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await api.post("/auth/login", { email, password })
       console.log("Login response:", response.data);
 
-      if (response.data.accessToken) {
+      if (response.data.access_token) {
         // Extract user info from token or use email
-        const tokenData = JSON.parse(atob(response.data.accessToken.split(".")[1]))
+        const tokenData = JSON.parse(atob(response.data.access_token.split(".")[1]))
         console.log("Token data:", tokenData);
 
         const user: User = {
@@ -199,8 +199,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         saveAuthData(user, {
-          accessToken: response.data.accessToken,
-          refreshToken: response.data.refreshToken,
+          access_token: response.data.access_token,
+          refresh_token: response.data.refresh_token,
         })
 
         toast({
@@ -211,7 +211,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("Attempting to navigate to dashboard...");
         router.push("/dashboard")
       } else {
-        console.error("Missing accessToken in login response:", response.data);
+        console.error("Missing access_token in login response:", response.data);
       }
     } catch (error: any) {
       console.error("Login failed:", error);
