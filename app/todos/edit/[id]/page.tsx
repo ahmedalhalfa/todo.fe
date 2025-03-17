@@ -27,6 +27,13 @@ export default function EditTodoPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [todoId, setTodoId] = useState("")
+
+  useEffect(() => {
+    if (params && params.id) {
+      setTodoId(params.id)
+    }
+  }, [params])
 
   const form = useForm<TodoFormValues>({
     resolver: zodResolver(todoSchema),
@@ -38,10 +45,12 @@ export default function EditTodoPage({ params }: { params: { id: string } }) {
   })
 
   useEffect(() => {
+    if (!todoId) return
+    
     const fetchTodo = async () => {
       try {
         setIsLoading(true)
-        const todo = await todoApi.getById(params.id)
+        const todo = await todoApi.getById(todoId)
 
         form.reset({
           title: todo.title,
@@ -64,12 +73,21 @@ export default function EditTodoPage({ params }: { params: { id: string } }) {
     }
 
     fetchTodo()
-  }, [params.id, form, router])
+  }, [todoId, form, router])
 
   async function onSubmit(data: TodoFormValues) {
+    if (!todoId) {
+      toast({
+        title: "Error",
+        description: "Todo ID is missing. Please try again.",
+        variant: "destructive",
+      })
+      return
+    }
+    
     setIsSubmitting(true)
     try {
-      await todoApi.update(params.id, data)
+      await todoApi.update(todoId, data)
 
       toast({
         title: "Todo updated",

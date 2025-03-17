@@ -1,8 +1,29 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
+import { useAuth } from "@/lib/auth-provider"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
+  const { user } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    // Redirect to dashboard if user is already logged in
+    if (user) {
+      router.push("/dashboard")
+    }
+  }, [user, router])
+
+  // If user is authenticated, don't render the home page content
+  // This prevents flickering before redirect
+  if (user) {
+    return null
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4 py-10">
       <div className="max-w-3xl mx-auto text-center space-y-6">

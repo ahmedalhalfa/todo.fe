@@ -45,7 +45,20 @@ export default function DashboardPage() {
     try {
       setLoading(true)
       const data = await todoApi.getAll()
-      setTodos(data)
+      console.log('Todos data received:', data)
+      // Ensure todos have _id property
+      if (data && data.length > 0) {
+        // Check if the API returns id instead of _id
+        const fixedData = data.map(todo => {
+          if (todo.id && !todo._id) {
+            return { ...todo, _id: todo.id };
+          }
+          return todo;
+        });
+        setTodos(fixedData)
+      } else {
+        setTodos(data)
+      }
     } catch (error) {
       console.error("Failed to fetch todos:", error)
       toast({
@@ -82,11 +95,13 @@ export default function DashboardPage() {
 
   const toggleTodoStatus = async (todo: Todo) => {
     try {
-      const updatedTodo = await todoApi.update(todo._id, {
+      const todoId = todo._id || todo.id || '';
+      
+      const updatedTodo = await todoApi.update(todoId, {
         completed: !todo.completed,
       })
 
-      setTodos(todos.map((t) => (t._id === todo._id ? updatedTodo : t)))
+      setTodos(todos.map((t) => (t._id === todoId || t.id === todoId ? updatedTodo : t)))
 
       toast({
         title: updatedTodo.completed ? "Todo completed" : "Todo marked as active",
@@ -105,7 +120,7 @@ export default function DashboardPage() {
   const deleteTodo = async (id: string) => {
     try {
       await todoApi.delete(id)
-      setTodos(todos.filter((todo) => todo._id !== id))
+      setTodos(todos.filter((todo) => (todo._id !== id && todo.id !== id)))
 
       toast({
         title: "Todo deleted",
@@ -130,7 +145,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="container py-10">
+    <div className="container-fluid max-w-full py-10 px-4 md:px-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
@@ -157,15 +172,15 @@ export default function DashboardPage() {
 
         <Tabs defaultValue="all" className="w-full md:w-auto" onValueChange={setActiveTab}>
           <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
+            <TabsTrigger key="all" value="all">All</TabsTrigger>
+            <TabsTrigger key="active" value="active">Active</TabsTrigger>
+            <TabsTrigger key="completed" value="completed">Completed</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {[1, 2, 3].map((i) => (
             <Card key={i}>
               <CardHeader className="pb-2">
@@ -183,61 +198,66 @@ export default function DashboardPage() {
           ))}
         </div>
       ) : filteredTodos.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTodos.map((todo) => (
-            <Card key={todo._id} className={todo.completed ? "opacity-75" : ""}>
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div className={`${todo.completed ? "line-through text-muted-foreground" : ""}`}>
-                    <CardTitle className="text-xl">{todo.title}</CardTitle>
-                    <CardDescription>Created on {formatDate(todo.createdAt)}</CardDescription>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => toggleTodoStatus(todo)}
-                    className={todo.completed ? "text-green-500" : "text-muted-foreground"}
-                  >
-                    {todo.completed ? <Check /> : <X />}
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className={`text-sm ${todo.completed ? "line-through text-muted-foreground" : ""}`}>
-                  {todo.description || "No description provided."}
-                </p>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/todos/edit/${todo._id}`}>
-                    <Edit className="mr-2 h-4 w-4" /> Edit
-                  </Link>
-                </Button>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="text-red-500">
-                      <Trash2 className="mr-2 h-4 w-4" /> Delete
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {filteredTodos.map((todo) => {
+            console.log('Rendering todo:', todo);
+            const todoId = todo._id || todo.id || '';
+            
+            return (
+              <Card key={todoId} className={todo.completed ? "opacity-75" : ""}>
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between">
+                    <div className={`${todo.completed ? "line-through text-muted-foreground" : ""}`}>
+                      <CardTitle className="text-xl">{todo.title}</CardTitle>
+                      <CardDescription>Created on {formatDate(todo.createdAt)}</CardDescription>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => toggleTodoStatus(todo)}
+                      className={todo.completed ? "text-green-500" : "text-muted-foreground"}
+                    >
+                      {todo.completed ? <Check key="check-icon" /> : <X key="x-icon" />}
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the todo.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => deleteTodo(todo._id)} className="bg-red-500 hover:bg-red-600">
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </CardFooter>
-            </Card>
-          ))}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className={`text-sm ${todo.completed ? "line-through text-muted-foreground" : ""}`}>
+                    {todo.description || "No description provided."}
+                  </p>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/todos/edit/${todoId}`} onClick={() => console.log('Edit link clicked for todo ID:', todoId)}>
+                      <Edit className="mr-2 h-4 w-4" /> Edit
+                    </Link>
+                  </Button>
+
+                  <AlertDialog key={`alert-dialog-${todo._id}`}>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-red-500">
+                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete the todo.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => deleteTodo(todoId)} className="bg-red-500 hover:bg-red-600">
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </CardFooter>
+              </Card>
+            )
+          })}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-12 text-center">

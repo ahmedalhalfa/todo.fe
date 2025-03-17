@@ -22,13 +22,13 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const routes = [
-    { href: "/", label: "Home" },
     ...(user
       ? [
           { href: "/dashboard", label: "Dashboard" },
           { href: "/profile", label: "Profile" },
         ]
       : [
+          { href: "/", label: "Home" },
           { href: "/login", label: "Login" },
           { href: "/register", label: "Register" },
         ]),
@@ -36,7 +36,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container-fluid w-full max-w-full px-4 md:px-6 flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="font-bold text-xl">
             Todo App
@@ -79,9 +79,6 @@ export default function Navbar() {
                 <DropdownMenuItem asChild>
                   <Link href="/profile">Profile</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard">Dashboard</Link>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="text-red-600">
                   <LogOut className="mr-2 h-4 w-4" />
@@ -102,7 +99,7 @@ export default function Navbar() {
       {/* Mobile navigation */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t">
-          <div className="container py-4 space-y-2">
+          <div className="container-fluid w-full max-w-full px-4 md:px-6 py-4 space-y-2">
             {routes.map((route) => (
               <Link
                 key={route.href}

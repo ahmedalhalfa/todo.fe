@@ -60,15 +60,15 @@ export default function CreateTodoPage() {
   }
 
   return (
-    <div className="container max-w-2xl py-10">
-      <div className="space-y-6">
+    <div className="container-fluid max-w-full px-4 md:px-6 py-10">
+      <div className="mx-auto max-w-3xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Create Todo</h1>
           <p className="text-muted-foreground">Add a new task to your todo list</p>
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-card p-6 rounded-lg border shadow-sm">
             <FormField
               control={form.control}
               name="title"

@@ -22,6 +22,7 @@ export interface ErrorResponse {
 // Todo types
 export interface Todo {
   _id: string
+  id?: string  // Some APIs might return id instead of _id
   title: string
   description?: string
   completed: boolean
