@@ -31,6 +31,8 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("all")
 
+  console.log("Dashboard page loaded, user:", user)
+
   useEffect(() => {
     fetchTodos()
   }, [])

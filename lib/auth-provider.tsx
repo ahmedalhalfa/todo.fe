@@ -140,7 +140,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (userData: RegisterData) => {
     try {
       setLoading(true)
+      console.log("Registration attempt with:", { email: userData.email });
       const response = await api.post("/auth/register", userData)
+      console.log("Registration response:", response.data);
 
       if (response.data.accessToken) {
         const user: User = {
@@ -159,10 +161,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           description: "Your account has been created successfully.",
         })
 
+        console.log("Attempting to navigate to dashboard...");
         router.push("/dashboard")
+      } else {
+        console.error("Missing accessToken in registration response:", response.data);
       }
     } catch (error: any) {
-      console.error("Registration failed:", error)
+      console.error("Registration failed:", error);
+      console.error("Error response data:", error.response?.data);
 
       toast({
         title: "Registration failed",
@@ -177,11 +183,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       setLoading(true)
+      console.log("Login attempt for:", email);
       const response = await api.post("/auth/login", { email, password })
+      console.log("Login response:", response.data);
 
       if (response.data.accessToken) {
         // Extract user info from token or use email
         const tokenData = JSON.parse(atob(response.data.accessToken.split(".")[1]))
+        console.log("Token data:", tokenData);
 
         const user: User = {
           email: tokenData.email || email,
@@ -199,10 +208,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           description: "You have been logged in successfully.",
         })
 
+        console.log("Attempting to navigate to dashboard...");
         router.push("/dashboard")
+      } else {
+        console.error("Missing accessToken in login response:", response.data);
       }
     } catch (error: any) {
-      console.error("Login failed:", error)
+      console.error("Login failed:", error);
+      console.error("Error response data:", error.response?.data);
 
       toast({
         title: "Login failed",

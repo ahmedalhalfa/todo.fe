@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/lib/auth-provider"
 import { Loader2 } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 const registerSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -28,6 +29,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 export default function RegisterPage() {
   const { register, loading } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter()
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -46,6 +48,11 @@ export default function RegisterPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  function testNavigation() {
+    console.log("Testing direct navigation to dashboard...")
+    router.push("/dashboard")
   }
 
   return (
@@ -129,6 +136,10 @@ export default function RegisterPage() {
             Login
           </Link>
         </div>
+
+        <Button onClick={testNavigation} variant="outline" className="w-full">
+          Test Navigation
+        </Button>
       </div>
     </div>
   )
