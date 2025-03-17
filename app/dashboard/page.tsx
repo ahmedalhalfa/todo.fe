@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -37,9 +37,31 @@ export default function DashboardPage() {
     fetchTodos()
   }, [])
 
+  const filterTodos = useCallback(() => {
+    let filtered = [...todos]
+
+    // Filter by search query
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (todo) =>
+          todo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (todo.description && todo.description.toLowerCase().includes(searchQuery.toLowerCase())),
+      )
+    }
+
+    // Filter by completion status
+    if (activeTab === "completed") {
+      filtered = filtered.filter((todo) => todo.completed)
+    } else if (activeTab === "active") {
+      filtered = filtered.filter((todo) => !todo.completed)
+    }
+
+    setFilteredTodos(filtered)
+  }, [todos, searchQuery, activeTab])
+
   useEffect(() => {
     filterTodos()
-  }, [todos, searchQuery, activeTab])
+  }, [filterTodos])
 
   const fetchTodos = async () => {
     try {
@@ -69,28 +91,6 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const filterTodos = () => {
-    let filtered = [...todos]
-
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (todo) =>
-          todo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (todo.description && todo.description.toLowerCase().includes(searchQuery.toLowerCase())),
-      )
-    }
-
-    // Filter by completion status
-    if (activeTab === "completed") {
-      filtered = filtered.filter((todo) => todo.completed)
-    } else if (activeTab === "active") {
-      filtered = filtered.filter((todo) => !todo.completed)
-    }
-
-    setFilteredTodos(filtered)
   }
 
   const toggleTodoStatus = async (todo: Todo) => {

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { api } from "@/lib/api"
 import { toast } from "@/components/ui/use-toast"
@@ -73,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     initAuth()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Redirect unauthenticated users away from protected routes
@@ -104,28 +105,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(userData)
   }
 
-  const clearAuthData = () => {
+  const clearAuthData = useCallback(() => {
     localStorage.removeItem("user")
     localStorage.removeItem("accessToken")
     localStorage.removeItem("refreshToken")
-
+    
     // Remove the authorization header
     delete api.defaults.headers.common["Authorization"]
-
+    
     setUser(null)
-  }
+  }, [])
 
-  const refreshAccessToken = async (refreshToken: string) => {
+  const refreshAccessToken = useCallback(async (refreshToken: string) => {
     try {
       const response = await api.post("/auth/refresh", { refreshToken })
-
+      
       if (response.data.access_token) {
         localStorage.setItem("accessToken", response.data.access_token)
         localStorage.setItem("refreshToken", response.data.refresh_token)
-
+        
         // Update the authorization header
         api.defaults.headers.common["Authorization"] = `Bearer ${response.data.access_token}`
-
+        
         return true
       }
 
@@ -135,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       clearAuthData()
       return false
     }
-  }
+  }, [clearAuthData])
 
   const register = async (userData: RegisterData) => {
     try {
@@ -166,13 +167,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         console.error("Missing access_token in registration response:", response.data);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Registration failed:", error);
-      console.error("Error response data:", error.response?.data);
+      
+      // Extract error message from error response if available
+      let errorMessage = "An error occurred during registration.";
+      if (error && typeof error === 'object' && 'response' in error && 
+          error.response && typeof error.response === 'object' && 'data' in error.response &&
+          error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+        errorMessage = String(error.response.data.message);
+      }
 
       toast({
         title: "Registration failed",
-        description: error.response?.data?.message || "An error occurred during registration.",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -213,13 +221,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         console.error("Missing access_token in login response:", response.data);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Login failed:", error);
-      console.error("Error response data:", error.response?.data);
+      
+      // Extract error message from error response if available
+      let errorMessage = "Invalid email or password.";
+      if (error && typeof error === 'object' && 'response' in error && 
+          error.response && typeof error.response === 'object' && 'data' in error.response &&
+          error.response.data && typeof error.response.data === 'object' && 'message' in error.response.data) {
+        errorMessage = String(error.response.data.message);
+      }
 
       toast({
         title: "Login failed",
-        description: error.response?.data?.message || "Invalid email or password.",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -311,6 +326,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       api.interceptors.response.eject(responseInterceptor)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router])
 
   return (

@@ -1,5 +1,5 @@
 import axios from "axios"
-import { parseAxiosError, AppError, ApiError } from "./error-utils"
+import { parseAxiosError, AppError } from "./error-utils"
 
 // Create an axios instance with default config
 export const api = axios.create({
@@ -161,56 +161,4 @@ export const todoApi = {
       `Failed to delete todo with ID ${id}`
     );
   },
-};
-
-// API functions for auth
-export const authApi = {
-  login: async (credentials: LoginDto): Promise<AuthTokens> => {
-    return createApiMethod(
-      async () => {
-        const response = await api.post<AuthTokens>("/auth/login", credentials);
-        return response.data;
-      },
-      "Login failed. Please check your credentials."
-    );
-  },
-
-  register: async (userData: RegisterDto): Promise<AuthTokens> => {
-    return createApiMethod(
-      async () => {
-        const response = await api.post<AuthTokens>("/auth/register", userData);
-        return response.data;
-      },
-      "Registration failed. Please try again."
-    );
-  },
-
-  refresh: async (refreshToken: string): Promise<AuthTokens> => {
-    return createApiMethod(
-      async () => {
-        const response = await api.post<AuthTokens>("/auth/refresh", { refreshToken });
-        return response.data;
-      },
-      "Failed to refresh authentication. Please log in again."
-    );
-  },
-
-  logout: async (): Promise<void> => {
-    return createApiMethod(
-      async () => {
-        await api.post("/auth/logout");
-      },
-      "Failed to log out"
-    );
-  },
-
-  logoutAll: async (): Promise<void> => {
-    return createApiMethod(
-      async () => {
-        await api.post("/auth/logout-all");
-      },
-      "Failed to log out from all devices"
-    );
-  },
-};
-
+}

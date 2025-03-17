@@ -72,8 +72,27 @@ export function showErrorToast(error: unknown) {
 }
 
 // Function to parse axios error responses
-export function parseAxiosError(error: any): ApiError {
-  const response = error.response
+export function parseAxiosError(error: unknown): ApiError {
+  // Type guard to check if error has response property
+  if (!error || typeof error !== 'object') {
+    return {
+      status: 500,
+      message: "An unexpected error occurred"
+    };
+  }
+
+  const errorObj = error as { 
+    response?: { 
+      status?: number; 
+      data?: { 
+        message?: string; 
+        errors?: Record<string, string[]> 
+      } 
+    };
+    message?: string;
+  };
+  
+  const response = errorObj.response;
   
   if (response?.data) {
     return {
@@ -83,7 +102,7 @@ export function parseAxiosError(error: any): ApiError {
     }
   }
   
-  if (error.message === "Network Error") {
+  if (errorObj.message === "Network Error") {
     return {
       status: 0,
       message: "Cannot connect to server. Please check your internet connection."
@@ -92,6 +111,6 @@ export function parseAxiosError(error: any): ApiError {
 
   return {
     status: 500,
-    message: error.message || "An unexpected error occurred"
+    message: errorObj.message || "An unexpected error occurred"
   }
 } 
