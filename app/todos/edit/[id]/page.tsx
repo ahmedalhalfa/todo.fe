@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -23,17 +23,28 @@ const todoSchema = z.object({
 
 type TodoFormValues = z.infer<typeof todoSchema>
 
-export default function EditTodoPage({ params }: { params: { id: string } }) {
+export default function EditTodoPage() {
   const router = useRouter()
+  const pathname = usePathname()
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [todoId, setTodoId] = useState("")
 
   useEffect(() => {
-    if (params && params.id) {
-      setTodoId(params.id)
+    const id = pathname.split('/').pop();
+    if (id) {
+      setTodoId(id);
+      console.log("ID extracted from pathname:", id);
+    } else {
+      console.error("Could not extract ID from pathname");
+      toast({
+        title: "Error",
+        description: "Invalid todo ID in URL. Redirecting to dashboard.",
+        variant: "destructive",
+      });
+      router.push("/dashboard");
     }
-  }, [params])
+  }, [pathname, router]);
 
   const form = useForm<TodoFormValues>({
     resolver: zodResolver(todoSchema),
@@ -110,8 +121,8 @@ export default function EditTodoPage({ params }: { params: { id: string } }) {
 
   if (isLoading) {
     return (
-      <div className="container max-w-2xl py-10">
-        <div className="space-y-6">
+      <div className="container-fluid max-w-full px-4 md:px-6 py-10">
+        <div className="mx-auto max-w-3xl space-y-6">
           <div>
             <Skeleton className="h-10 w-40 mb-2" />
             <Skeleton className="h-4 w-60" />
@@ -139,15 +150,15 @@ export default function EditTodoPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="container max-w-2xl py-10">
-      <div className="space-y-6">
+    <div className="container-fluid max-w-full px-4 md:px-6 py-10">
+      <div className="mx-auto max-w-3xl space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Edit Todo</h1>
           <p className="text-muted-foreground">Update your todo details</p>
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-card p-6 rounded-lg border shadow-sm">
             <FormField
               control={form.control}
               name="title"
